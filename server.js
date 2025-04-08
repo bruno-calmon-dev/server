@@ -28,16 +28,29 @@ app.get('/usuarios', (req, res) => {
 });
 
 app.post('/usuarios', (req, res) => {
-  const { nome, email } = req.body;
-  const sql = 'INSERT INTO usuarios (nome, email) VALUES (?, ?)';
-  db.run(sql, [nome, email], function (err) {
+  const { nome, email, endereco, telefone, cargo, dataNascimento, dataCriacao } = req.body;
+  const sqlInsert = 'INSERT INTO usuarios (nome, email, endereco, telefone, cargo, dataNascimento, dataCriacao) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  const sqlSelect = 'SELECT * FROM usuarios WHERE email = ?';
+
+  db.get(sqlSelect, [email], (err, row) => {
     if (err) {
       res.status(500).json({ error: err.message });
+    } else if (row) {
+      res.status(400).json({ error: 'O email já está registrado.' });
     } else {
-      res.json({ id: this.lastID, nome, email });
+      db.run(sqlInsert, [nome, email, endereco, telefone, cargo, dataNascimento, dataCriacao], function (err) {
+        if (err) {
+          res.status(500).json({ error: err.message });
+        } else {
+          res.json({ id: this.lastID, nome, email, endereco, telefone, cargo, dataNascimento, dataCriacao });
+        }
+      });
     }
   });
 });
+
+
+
 
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
